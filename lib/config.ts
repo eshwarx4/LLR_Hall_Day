@@ -66,9 +66,6 @@ export const EVENT_CONFIG = {
     },
   ],
 
-  // Google Maps link for navigation
-  mapsLink: "https://maps.google.com/?q=22.3149,87.3105&ll=22.3149,87.3105&z=17",
-
   // Interest options
   interests: [
     { id: "music", label: "Music", emoji: "🎵" },
@@ -85,7 +82,6 @@ export const EVENT_CONFIG = {
     rsvp: "Lock it in",
     interests: "Save my picks",
     roomFinder: "Find B-206 🧭",
-    openMaps: "Open in Google Maps",
   },
 
   // Share text

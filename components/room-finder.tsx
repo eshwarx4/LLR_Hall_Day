@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Navigation, ExternalLink, ChevronRight, ChevronLeft, Loader2, X } from "lucide-react";
+import { MapPin, Navigation, ChevronRight, ChevronLeft, Loader2, X } from "lucide-react";
 import { EVENT_CONFIG } from "@/lib/config";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { getDistanceMeters, getProximityStatus, type ProximityStatus } from "@/lib/utils";
@@ -102,11 +102,6 @@ function ProximityResult({ proximity, distance }: { proximity: ProximityStatus; 
         </h3>
         <p className="text-amber-200/40 text-sm">{dist}</p>
       </div>
-      <a href={EVENT_CONFIG.mapsLink} target="_blank" rel="noopener noreferrer"
-        className={`flex items-center justify-center gap-2 w-full py-4 rounded-2xl ${proximity === "far" ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold text-base shadow-2xl" : "glass-strong text-blue-400 font-semibold text-sm"} mb-4 transition-colors`}>
-        {proximity === "far" ? <Navigation size={18} /> : <ExternalLink size={16} />}
-        {EVENT_CONFIG.cta.openMaps}
-      </a>
       <button onClick={() => setShowMap(true)} className="w-full text-amber-200/25 text-sm py-2 hover:text-amber-200/40 transition-colors flex items-center justify-center gap-1 mb-4">
         {showMap ? "Hide" : "See"} the hall map <ChevronRight size={14} />
       </button>
@@ -170,10 +165,6 @@ export default function RoomFinder() {
             </motion.div>
           ) : showManual && !activated ? (
             <motion.div key="manual" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-              <a href={EVENT_CONFIG.mapsLink} target="_blank" rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl glass-strong text-blue-400 font-semibold text-sm mb-6">
-                <ExternalLink size={16} />{EVENT_CONFIG.cta.openMaps}
-              </a>
               <StepNavigator onDone={() => setArrived(true)} />
             </motion.div>
           ) : geo.loading ? (
@@ -188,10 +179,6 @@ export default function RoomFinder() {
                 <span>{geo.unsupported ? "Browser doesn't support location." : geo.permissionDenied ? "Location access denied." : "Couldn't get location."}</span>
               </div>
               <p className="text-amber-200/30 text-sm text-center mb-4">No worries — use the pixel map:</p>
-              <a href={EVENT_CONFIG.mapsLink} target="_blank" rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl glass-strong text-blue-400 font-semibold text-sm mb-6">
-                <ExternalLink size={16} />{EVENT_CONFIG.cta.openMaps}
-              </a>
               <StepNavigator onDone={() => setArrived(true)} />
             </motion.div>
           ) : proximity ? (
