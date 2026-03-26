@@ -101,7 +101,12 @@ export default function Home() {
   const renderStep = () => {
     switch (step) {
       case "hero":
-        return <LandingHero onContinue={() => goTo("rsvp")} />;
+        return (
+          <>
+            <LandingHero onContinue={() => goTo("rsvp")} />
+            <AttendeeWall />
+          </>
+        );
       case "rsvp":
         return <RsvpForm onSubmit={handleRsvp} />;
       case "card":
