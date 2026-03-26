@@ -1,101 +1,179 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useCallback, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import LandingHero from "@/components/landing-hero";
+import RsvpForm from "@/components/rsvp-form";
+import InvitationCard from "@/components/invitation-card";
+import InterestPicker from "@/components/interest-picker";
+import AttendeeWall from "@/components/attendee-wall";
+import RoomFinder from "@/components/room-finder";
+import ConfettiBurst from "@/components/confetti-burst";
+import { FallingPetals } from "@/components/festive-elements";
+import type { RsvpStatus } from "@/lib/types";
+
+type Step = "hero" | "rsvp" | "card" | "interests" | "wall" | "finder";
+
+const STEPS: Step[] = ["hero", "rsvp", "card", "interests", "wall", "finder"];
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [step, setStep] = useState<Step>("hero");
+  const [userName, setUserName] = useState("");
+  const [rsvpStatus, setRsvpStatus] = useState<RsvpStatus | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [direction, setDirection] = useState(1); // 1 = forward, -1 = back
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  // Sync step with URL hash for browser back/forward
+  useEffect(() => {
+    const hash = window.location.hash.replace("#", "") as Step;
+    if (hash && STEPS.includes(hash)) {
+      setStep(hash);
+    }
+
+    const onPopState = () => {
+      const h = window.location.hash.replace("#", "") as Step;
+      if (h && STEPS.includes(h)) {
+        const oldIdx = STEPS.indexOf(step);
+        const newIdx = STEPS.indexOf(h);
+        setDirection(newIdx >= oldIdx ? 1 : -1);
+        setStep(h);
+      } else {
+        setDirection(-1);
+        setStep("hero");
+      }
+    };
+
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [step]);
+
+  const goTo = useCallback((next: Step) => {
+    const oldIdx = STEPS.indexOf(step);
+    const newIdx = STEPS.indexOf(next);
+    setDirection(newIdx >= oldIdx ? 1 : -1);
+    setStep(next);
+    window.history.pushState(null, "", `#${next}`);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [step]);
+
+  const goBack = useCallback(() => {
+    const idx = STEPS.indexOf(step);
+    if (idx > 0) {
+      // Skip "card" when going back if no RSVP data
+      let prevIdx = idx - 1;
+      if (STEPS[prevIdx] === "card" && (!rsvpStatus || rsvpStatus === "no")) {
+        prevIdx--;
+      }
+      if (prevIdx >= 0) goTo(STEPS[prevIdx]);
+    }
+  }, [step, rsvpStatus, goTo]);
+
+  const handleRsvp = async (name: string, status: RsvpStatus) => {
+    setUserName(name);
+    setRsvpStatus(status);
+    try {
+      await fetch("/api/rsvp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, rsvp_status: status }),
+      });
+    } catch {}
+
+    if (status === "yes" || status === "maybe") {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3500);
+    }
+
+    setTimeout(() => goTo(status === "no" ? "wall" : "card"), 1800);
+  };
+
+  const handleInterests = async (interests: string[], otherInterest?: string) => {
+    try {
+      await fetch("/api/rsvp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: userName, rsvp_status: rsvpStatus, interests, other_interest: otherInterest }),
+      });
+    } catch {}
+    setTimeout(() => goTo("wall"), 1500);
+  };
+
+  const renderStep = () => {
+    switch (step) {
+      case "hero":
+        return <LandingHero onContinue={() => goTo("rsvp")} />;
+      case "rsvp":
+        return <RsvpForm onSubmit={handleRsvp} />;
+      case "card":
+        if (rsvpStatus && rsvpStatus !== "no") {
+          return <InvitationCard name={userName} status={rsvpStatus} onContinue={() => goTo("interests")} />;
+        }
+        return null;
+      case "interests":
+        return <InterestPicker onSubmit={handleInterests} onSkip={() => goTo("wall")} />;
+      case "wall":
+        return (
+          <>
+            <AttendeeWall />
+            <div className="flex justify-center px-6 pb-20">
+              <motion.div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-2xl blur-xl opacity-30" />
+                <motion.button
+                  onClick={() => goTo("finder")}
+                  className="relative px-10 py-5 rounded-2xl bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 btn-gradient text-white font-bold text-lg shadow-2xl transition-all"
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6, type: "spring" }}
+                >
+                  Find B-206 🧭
+                </motion.button>
+              </motion.div>
+            </div>
+          </>
+        );
+      case "finder":
+        return <RoomFinder />;
+    }
+  };
+
+  const showBackButton = step !== "hero";
+
+  return (
+    <div className="relative min-h-[100dvh]">
+      <FallingPetals count={12} />
+      {showConfetti && <ConfettiBurst />}
+
+      {/* Back button */}
+      <AnimatePresence>
+        {showBackButton && (
+          <motion.button
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            onClick={goBack}
+            className="fixed top-4 left-4 z-50 w-10 h-10 rounded-full bg-black/30 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-black/50 transition-colors"
+            aria-label="Go back"
           >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait" custom={direction}>
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, x: direction * 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: direction * -40 }}
+          transition={{ duration: 0.35, ease: "easeInOut" }}
         >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          {renderStep()}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

@@ -3,25 +3,194 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --saffron: #FF6F00;
+  --marigold: #FFB300;
+  --deep-red: #B71C1C;
+  --temple-gold: #FFD54F;
+  --leaf-green: #2E7D32;
+  --cream: #FFF8E1;
+  --warm-bg: #1a0f0a;
+  --warm-bg-2: #1f1008;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: white;
+  background: var(--warm-bg);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+/* Festive warm gradient mesh */
+.bg-mesh {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 20%, rgba(255, 111, 0, 0.08), transparent),
+    radial-gradient(ellipse 60% 80% at 85% 15%, rgba(183, 28, 28, 0.07), transparent),
+    radial-gradient(ellipse 70% 50% at 50% 85%, rgba(255, 179, 0, 0.06), transparent),
+    radial-gradient(ellipse 50% 40% at 90% 60%, rgba(46, 125, 50, 0.05), transparent);
+  animation: meshShift 25s ease-in-out infinite alternate;
+}
+
+@keyframes meshShift {
+  0% {
+    background:
+      radial-gradient(ellipse 80% 60% at 10% 20%, rgba(255, 111, 0, 0.08), transparent),
+      radial-gradient(ellipse 60% 80% at 85% 15%, rgba(183, 28, 28, 0.07), transparent),
+      radial-gradient(ellipse 70% 50% at 50% 85%, rgba(255, 179, 0, 0.06), transparent),
+      radial-gradient(ellipse 50% 40% at 90% 60%, rgba(46, 125, 50, 0.05), transparent);
   }
+  100% {
+    background:
+      radial-gradient(ellipse 60% 70% at 50% 10%, rgba(255, 179, 0, 0.08), transparent),
+      radial-gradient(ellipse 80% 50% at 20% 60%, rgba(255, 111, 0, 0.07), transparent),
+      radial-gradient(ellipse 70% 70% at 80% 50%, rgba(183, 28, 28, 0.06), transparent),
+      radial-gradient(ellipse 50% 50% at 40% 90%, rgba(46, 125, 50, 0.05), transparent);
+  }
+}
+
+/* Text glow — warm saffron */
+.text-glow {
+  text-shadow:
+    0 0 30px rgba(255, 179, 0, 0.3),
+    0 0 80px rgba(255, 111, 0, 0.15),
+    0 0 120px rgba(255, 111, 0, 0.08);
+}
+
+/* Glass card — warm tint */
+.glass {
+  background: rgba(255, 240, 210, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 200, 100, 0.06);
+}
+
+.glass-strong {
+  background: rgba(255, 240, 210, 0.06);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 200, 100, 0.1);
+}
+
+/* Mango leaf toran - decorative border */
+.toran-border {
+  position: relative;
+  overflow: visible;
+}
+.toran-border::before {
+  content: '🥭🌿🥭🌿🥭🌿🥭🌿🥭🌿🥭🌿🥭🌿🥭';
+  position: absolute;
+  top: -18px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 14px;
+  letter-spacing: 2px;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  line-height: 1;
+}
+
+/* Marigold chain top border */
+.marigold-border::before {
+  content: '🌼🌼🌼🌼🌼🌼🌼🌼🌼🌼🌼🌼🌼🌼🌼';
+  position: absolute;
+  top: -16px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 4px;
+  pointer-events: none;
+  line-height: 1;
+}
+
+/* Gradient button animation */
+@keyframes gradientX {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.btn-gradient {
+  background-size: 200% 200%;
+  animation: gradientX 3s ease infinite;
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(-12px) rotate(2deg); }
+  75% { transform: translateY(6px) rotate(-1deg); }
+}
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-float-delayed { animation: float 7s ease-in-out 1s infinite; }
+
+/* Diya flicker */
+@keyframes flicker {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.1); }
+}
+.animate-flicker { animation: flicker 1.5s ease-in-out infinite; }
+
+/* Petal fall animation */
+@keyframes petalFall {
+  0% { transform: translateY(-10vh) translateX(0px) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(105vh) translateX(80px) rotate(360deg); opacity: 0; }
+}
+
+/* Pixel map styles */
+.pixel-floor {
+  background-image:
+    linear-gradient(45deg, rgba(255,200,100,0.05) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(255,200,100,0.05) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(255,200,100,0.05) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(255,200,100,0.05) 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+}
+
+.pixel-room {
+  image-rendering: pixelated;
+  border: 2px solid rgba(255,200,100,0.15);
+  background: rgba(255,200,100,0.03);
+}
+
+.pixel-room-active {
+  border: 2px solid rgba(255, 179, 0, 0.6);
+  background: rgba(255, 179, 0, 0.1);
+  box-shadow: 0 0 20px rgba(255, 179, 0, 0.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .bg-mesh { animation: none; }
+}
+
+body::-webkit-scrollbar { width: 0; }
+
+::selection {
+  background: rgba(255, 111, 0, 0.4);
+  color: white;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px rgba(26, 15, 10, 1) inset;
+  -webkit-text-fill-color: white;
+  caret-color: white;
 }
